@@ -1,0 +1,230 @@
+Web App: Link Savor — Detailed Module
+1. User Authentication & Account Management
+Sign up / Login (Email, Google)
+
+
+Forgot password
+
+
+Email verification
+
+
+Profile settings
+
+
+Notification preferences
+
+
+Account deletion
+
+
+2. Smart Link Detection Module
+Clipboard listener (ask permission, detect URLs)
+
+
+Auto-prompt user to save copied link
+
+
+Smart popup:
+
+
+ "You copied a link: Would you like to save it?"
+
+
+
+Smart scraping (auto-fetch title, meta description, favicon)
+
+
+3. Add New Link
+Manual link entry
+
+
+Auto-filled title & description
+
+
+Optional: Tags, Category, Deadline, Notes, Priority
+
+
+Save as Draft / Save Now
+
+
+4. Link Dashboard
+List and grid views
+
+
+Infinite scroll / pagination
+
+
+Quick preview of links (title, deadline, status)
+
+
+Deadline countdown badges
+
+
+5. Filters & Sorting
+Filter by:
+
+
+Category (Job, Internship, etc.)
+
+
+Deadline range
+
+
+Status (Applied, In Progress)
+
+
+Tags
+
+
+Sort by: Added date, deadline, title, priority
+
+
+6. Categories & Tag Management
+Default categories
+
+
+Add/edit/delete custom categories
+
+
+Add/edit/delete tags
+
+
+Color-coded labels
+
+
+7. Link Details & Actions
+View full link details (title, notes, deadline, etc.)
+
+
+Edit / Delete / Duplicate
+
+
+Mark as: Applied, Rejected, Done
+
+
+Add attachments (resume, screenshots, etc.)
+
+
+8. Deadline & Notification System
+Add deadline with date/time
+
+
+Set reminders:
+
+
+1 day before
+
+
+Custom reminder time
+
+
+Push notifications (via browser)
+
+
+Email notifications (summary or deadline alert)
+
+
+9. Smart Suggestions (AI-powered later)
+Suggest category based on URL/title
+
+
+Recommend tags
+
+
+(Optional future) Analyze page content for deadlines
+
+
+10. Search System
+Full-text search (title, notes, URL)
+
+
+Live results
+
+
+Advanced search filters (date, category, status)
+
+
+11. User Dashboard / Insights
+Quick stats (Total links, upcoming deadlines, links applied)
+
+
+Deadline calendar widget
+
+
+Weekly reminders or summaries
+
+
+12. Import / Export Module
+Import from:
+
+
+CSV
+
+
+Browser bookmarks
+
+
+Export to:
+
+
+CSV
+
+
+JSON
+
+
+PDF summary
+
+
+13. Save-from-Browser Extension (Future)
+Chrome Extension: “Save Link to Link Savor”
+
+
+One-click saving from current tab
+
+
+Autofill details
+
+
+14. Settings & Preferences
+UI preferences (light/dark mode)
+
+
+Reminder intervals
+
+
+Default categories/tags
+
+
+Link sorting order
+
+
+Email & push toggle
+
+
+15. Feedback & Support Module
+Bug report form
+
+
+Feature suggestion form
+
+
+FAQs / Help Center
+
+
+Contact support (via email or chat)
+
+
+✅ Optional Add-Ons (Future Phase)
+Collaboration (shared link boards)
+
+
+Social sharing (share links with others)
+
+
+Timeline of user actions (activity log)
+
+
+
+

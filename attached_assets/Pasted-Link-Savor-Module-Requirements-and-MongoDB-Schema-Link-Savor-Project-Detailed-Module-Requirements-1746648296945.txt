@@ -1,0 +1,481 @@
+Link Savor: Module Requirements and MongoDB Schema
+Link Savor Project: Detailed Module Requirements and MongoDB Schema
+Student Name: [Your Name]
+Registration Number: [Your Registration Number]
+Section: SP-23
+Course: Web Technologies (CSC-336)
+Instructor: Mr. Ahmad Shaf
+Department: Computer Science
+University: COMSATS University Islamabad, Sahiwal Campus
+________________________________________
+Detailed Module Requirements
+Module 1: User Management
+Sub-Module 1: User Registration
+•	Input:
+–	Name: The full name of the new user signing up for the Link Savor service. This field is mandatory for creating a user profile.
+–	Email: A unique email address that will serve as the primary identifier for the user's account. It is crucial for login and communication purposes.
+–	Password: The confidential password chosen by the user to secure their account. This will be stored in a hashed format in the database.
+•	Output:
+–	Success/Error message: A clear indication to the user whether the registration attempt was successful or if errors occurred (e.g., validation failures, server issues).
+–	User saved in DB: If registration is successful, a new user document is created and persisted in the 'User' collection within the MongoDB database.
+•	Roles:
+–	Guest: This functionality is accessible to users who are not currently authenticated or logged into the system.
+•	Validations:
+–	Email must be valid format: The input email string must conform to standard email address patterns (e.g., containing '@' and a domain name).
+–	Password must be at least 8 characters: Enforces a minimum length requirement for the password to enhance security against brute-force attacks.
+–	Name is required: The name field must not be empty or null; it is a mandatory field for user profile creation.
+–	No duplicate email allowed: Ensures that each email address registered in the system is unique to prevent multiple accounts using the same email. A check against existing user records is performed.
+Sub-Module 2: User Login
+•	Input:
+–	Email: The registered email address of the user attempting to log in.
+–	Password: The password associated with the provided email address.
+•	Output:
+–	JWT Token: Upon successful authentication, a JSON Web Token is generated and returned to the client. This token is used for subsequent authenticated requests.
+–	User data or error: If login is successful, essential user data (excluding sensitive information like the password hash) is returned. If unsuccessful, an error message indicating the reason (e.g., invalid credentials) is provided.
+•	Roles:
+–	Registered User: This function is typically initiated by a user who has previously registered an account but is currently unauthenticated.
+•	Validations:
+–	Email must exist: Checks if the provided email address corresponds to an existing user account in the database.
+–	Password must match stored hash: The provided password is compared against the hashed password stored in the database for the corresponding email. This involves hashing the input password and comparing the hashes.
+________________________________________
+Module 2: Authentication & Authorization
+Sub-Module 1: Forgot Password
+•	Input:
+–	Email: The email address of the user who wishes to reset their password.
+•	Output:
+–	Password reset token sent via email: A unique, time-limited token is generated and sent to the user's registered email address. This token is required for the subsequent password reset step.
+•	Roles:
+–	Registered User / Guest: This feature can be accessed by anyone, regardless of their current authentication status, assuming they know the email associated with the account.
+•	Validations:
+–	Email must exist in the system: Verifies that the provided email address is associated with an active user account to prevent abuse and ensure the reset link is sent to a valid recipient.
+Sub-Module 2: Reset Password
+•	Input:
+–	Token: The unique password reset token received by the user via email.
+–	New Password: The new password the user wants to set for their account.
+•	Output:
+–	Success/Error: A message indicating whether the password reset was successful or if an error occurred (e.g., invalid token, expired token, password validation failure).
+•	Roles:
+–	Registered User: Although the user might technically be unauthenticated when performing this action via a reset link, the process is tied to a registered user account.
+•	Validations:
+–	Token must be valid and not expired: Checks the provided token against records in the 'PasswordResetToken' collection to ensure it is valid, belongs to the correct user, and has not passed its expiration time or been previously used.
+–	Password must be ≥ 8 chars: Enforces the same minimum length requirement for the new password as during initial registration.
+________________________________________
+Module 3: Profile Management
+Sub-Module 1: Update Profile
+•	Input:
+–	Name: The updated full name for the user's profile (optional input if user doesn't want to change).
+–	Image: The new profile image for the user (optional input). This can be provided as a Base64 encoded string or potentially a URL to an external image hosting service.
+•	Output:
+–	Updated user object or error: If the update is successful, the modified user object reflecting the changes is returned. If there are issues (e.g., validation errors), an error message is provided.
+•	Roles:
+–	Registered User: Only users who are authenticated can access and modify their own profile information.
+•	Validations:
+–	Name ≤ 50 characters: Limits the maximum length of the name field to maintain data consistency and presentation.
+–	Image is optional (base64 or URL): Specifies that the image input is not mandatory and indicates the expected formats for image data if provided.
+Sub-Module 2: Notification Settings
+•	Input:
+–	Email Notifications (boolean): A true/false value indicating whether the user wishes to receive email notifications.
+–	Push Notifications (boolean): A true/false value indicating whether the user wishes to receive push notifications (assuming push notification support is implemented).
+•	Output:
+–	Updated settings: Confirmation that the user's notification preferences have been successfully updated in their profile settings.
+•	Roles:
+–	Registered User: Only authenticated users can manage their personal notification preferences.
+•	Validations:
+–	Boolean values only: Ensures that the input for notification settings is strictly true or false.
+________________________________________
+Module 4: Link Management
+Sub-Module 1: Add New Link
+•	Input:
+–	URL: The web address (URL) of the link the user wants to save. This is the core piece of information.
+–	Title: A user-provided title for the link, or potentially fetched metadata (optional input).
+–	Tags: A list of tags (references to Tag documents) to categorize or describe the link (optional input).
+–	Notes: Personal notes or descriptions associated with the link (optional input).
+–	Deadline: A specific date by which the user intends to engage with or complete the link's associated task (optional input, but required for reminder functionality).
+–	Priority: An indication of the link's importance ("Low", "Medium", or "High") (optional input).
+•	Output:
+–	Saved link with metadata: The newly created Link document is stored in the database, including the provided input and system-generated metadata like creation date and the user who added it.
+•	Roles:
+–	Registered User: This action can only be performed by a user who is logged into their account.
+•	Validations:
+–	URL must be valid: The input string must conform to a standard URL format and potentially be checked for basic reachability or structural validity.
+–	Title ≤ 150 chars: Limits the maximum length of the link title.
+–	Deadline must be a future date: If a deadline is provided, it must be set to a date and time that is in the future relative to the current time.
+–	Priority must be one of ["Low", "Medium", "High"]: If a priority is provided, it must match one of the predefined allowed values (enum).
+Sub-Module 2: View Links
+•	Input:
+–	Filters (category, status, tags, search query): Optional query parameters provided by the user to refine the list of links displayed. Filters can include specific categories, link status ("Pending", "Completed", etc.), associated tags, or a general text search query.
+•	Output:
+–	Paginated list of links: A collection of Link documents matching the applied filters, returned in chunks (pages) to manage performance and memory usage for large link libraries. Includes essential link details for display.
+•	Roles:
+–	Registered User: Users can only view links that they have personally added or that have been shared with them.
+•	Validations:
+–	Query parameters are optional: The system should be able to handle requests with no filters, returning the default view (e.g., all pending links). Validation ensures that provided filter values (like status or category IDs) are valid if used.
+________________________________________
+Module 5: Smart Link Detection
+Sub-Module 1: Clipboard Detection (Frontend)
+•	Input:
+–	Copied text: Content obtained from the user's clipboard by the frontend application (requires user permission).
+•	Output:
+–	Detected link (if any): If the clipboard content contains a recognizable URL pattern, that URL string is extracted and presented to the user, often prompting them to save it.
+•	Roles:
+–	Registered User: This feature is typically part of the authenticated user experience, offering a convenient way to add links.
+•	Validations:
+–	Must match URL regex pattern: The copied text is analyzed using a regular expression to determine if it contains a valid web address format.
+Sub-Module 2: Fetch Metadata
+•	Input:
+–	URL: A valid web address provided by the user or detected by the system.
+•	Output:
+–	Fetched metadata (title, description, image): The system attempts to retrieve information from the provided URL, such as the page's HTML title, meta description, and potentially Open Graph or Twitter Card image URLs, to enrich the link's saved data.
+•	Roles:
+–	Registered User: Triggered implicitly when a user adds a new link or interacts with one that lacks metadata. The actual fetching might be handled by a backend process or service.
+•	Validations:
+–	URL must be reachable: The system should attempt to establish a connection to the URL to fetch metadata. Error handling is needed for unreachable or non-responsive URLs.
+________________________________________
+Module 6: Tags & Categories
+Sub-Module 1: Add Tag
+•	Input:
+–	Name: The desired name for the new tag.
+•	Output:
+–	Created tag: A new Tag document is created in the database for the user, representing the new tag.
+•	Roles:
+–	Registered User: Users can create and manage their own personal tags for organizing links.
+•	Validations:
+–	Name must be unique per user: A user cannot have two tags with the exact same name. Uniqueness is scoped to the individual user.
+–	Max 30 characters: Limits the maximum length of the tag name.
+Sub-Module 2: Add Category
+•	Input:
+–	Name: The desired name for the new category.
+–	Icon (optional): An optional icon representation for the category, potentially stored as a URL or Base64 string.
+•	Output:
+–	Created category: A new Category document is created in the database for the user, representing the new category.
+•	Roles:
+–	Registered User: Users can create and manage their own personal categories for organizing links.
+•	Validations:
+–	Name must be unique per user: Similar to tags, a user cannot have two categories with the exact same name. Uniqueness is scoped to the individual user.
+________________________________________
+Module 7: Reminders & Deadlines
+Sub-Module 1: Set Reminder
+•	Input:
+–	Date/Time: The specific date and time at which the user wants to receive a reminder.
+–	Link ID: The unique identifier of the link for which the reminder is being set.
+•	Output:
+–	Scheduled reminder: A new Reminder document is created in the database, linking the specified date/time to the target link and user. This document is used by the system to trigger notifications.
+•	Roles:
+–	Registered User: Users can set reminders only for links they own.
+•	Validations:
+–	Date must be in the future: Ensures that the reminder date and time are set for a point in time after the current moment.
+–	Valid link ID: Verifies that the provided Link ID corresponds to an existing link owned by the authenticated user.
+Sub-Module 2: Trigger Notification
+•	Input:
+–	— (Scheduled by cron job): This sub-module is typically triggered internally by a background process (like a cron job or task scheduler) that periodically checks the Reminder collection for overdue reminders.
+•	Output:
+–	Send push/email notification: Based on the user's notification preferences and the type of reminder, the system initiates sending a push notification and/or an email notification to the user regarding the specified link.
+•	Roles:
+–	System (Node Cron Job): This process runs independently of direct user interaction and is managed by the application backend.
+________________________________________
+Module 8: Dashboard & Insights
+Sub-Module 1: Dashboard Summary
+•	Input:
+–	—: This sub-module fetches summary data associated with the authenticated user's account. No specific input parameters are required other than the user's identity, which is derived from authentication.
+•	Output:
+–	Summary stats (total links, deadlines, completed): Provides aggregated data for the user's links, such as the total count of saved links, the number of links with upcoming deadlines, and the count of links marked as completed. This data is often displayed prominently on a user dashboard.
+•	Roles:
+–	Registered User: Only authenticated users can access their personal dashboard summary.
+Sub-Module 2: Weekly Progress
+•	Input:
+–	— (Authenticated user): Similar to the dashboard summary, the input is implicitly the identity of the authenticated user for whom the progress data is requested.
+•	Output:
+–	Graphical weekly progress: Provides data representing the user's activity over the past week, such as the number of links added, links completed, or reminders set, structured in a way suitable for graphical representation (e.g., counts per day).
+•	Roles:
+–	Registered User: Provides insights into the user's personal usage patterns and productivity within the application over a recent period.
+________________________________________
+Module 9: Application Tracker
+Sub-Module 1: Update Status
+•	Input:
+–	Status (enum): The new status value to be assigned to the link. Must be one of the predefined statuses for application tracking.
+–	Link ID: The unique identifier of the link (presumably related to a job application or similar tracked item) whose status needs to be updated.
+•	Output:
+–	Updated link status: The specified link document in the database has its status field modified to the new value. Confirmation of the successful update is returned.
+•	Roles:
+–	Registered User: Users can update the tracking status only for their own links.
+•	Validations:
+–	Status must be from enum ("Applied", "Interviewing", "Accepted", "Rejected"): Ensures that the provided status value is one of the allowed options defined for the application tracking feature.
+Sub-Module 2: Upload File
+•	Input:
+–	Resume/CV (PDF): A file containing a resume or curriculum vitae, expected in PDF format.
+–	Screenshots (Image): One or more image files (PNG, JPEG) related to the application, such as confirmation screens or job descriptions.
+•	Output:
+–	Uploaded file reference: The uploaded file is stored securely (e.g., on cloud storage), and a reference (like a file path or URL) to the stored file is saved, often associated with the relevant link. A new FileUpload document might be created.
+•	Roles:
+–	Registered User: Users can upload files only for links they own.
+•	Validations:
+–	Max file size 5MB: Restricts the size of individual files that can be uploaded to conserve storage and bandwidth.
+–	Allowed types: PDF, PNG, JPEG: Ensures that only files of the specified types are accepted for upload, preventing potentially malicious or incompatible file formats.
+________________________________________
+Module 10: Notifications
+Sub-Module 1: Push Notification
+•	Input:
+–	User ID: The identifier of the user who should receive the push notification.
+–	Link ID: The identifier of the link related to the notification (optional, if the notification is not link-specific).
+–	Message: The content of the notification to be displayed to the user.
+•	Output:
+–	Sent notification: The system sends the notification payload to a push notification service (e.g., FCM, APNS) for delivery to the user's registered device(s). A record of the notification may be saved in the database.
+•	Roles:
+–	System / Registered User: Can be triggered by automated system processes (e.g., reminders) or potentially by other users in future social/sharing features.
+•	Validations:
+–	Message ≤ 200 characters: Limits the length of the notification message to fit standard notification display limits.
+Sub-Module 2: Email Digest
+•	Input:
+–	User ID: The identifier of the user for whom the email digest is being generated.
+–	Summary: The aggregated content for the email digest, which might include a summary of recent activity, upcoming deadlines, or other relevant information.
+•	Output:
+–	Scheduled email delivery: An email containing the provided summary is composed and queued for delivery to the user's registered email address.
+•	Roles:
+–	System: This is typically an automated process, potentially scheduled to run periodically (e.g., daily or weekly).
+________________________________________
+Module 11: Import/Export
+Sub-Module 1: Import CSV
+•	Input:
+–	CSV file: A file uploaded by the user, expected to be in Comma Separated Values format, containing link data structured according to a predefined schema.
+•	Output:
+–	Imported links: Links parsed from the CSV file are created and saved in the database under the authenticated user's account. A summary of successful and failed imports may be provided.
+•	Roles:
+–	Registered User: Users can import data into their own accounts.
+•	Validations:
+–	CSV must match schema: The structure and data types within the uploaded CSV file must conform to the expected format for importing link data. Validation checks for required columns and data types.
+Sub-Module 2: Export Data
+•	Input:
+–	Format (CSV/PDF): The desired format for the exported data. The user specifies whether they want their data downloaded as a CSV file or a PDF document.
+•	Output:
+–	Downloadable file: The system generates a file containing the user's link data in the requested format and makes it available for download by the user's browser.
+•	Roles:
+–	Registered User: Users can export data from their own accounts.
+•	Validations:
+–	Format must be either “csv” or “pdf”: Ensures that the requested export format is one of the supported options.
+________________________________________
+Module 12: Premium Features (Future Scope)
+Sub-Module 1: AI Suggestions
+•	Input:
+–	URL content/page: The raw content or the URL of a web page that needs to be analyzed by an AI model.
+•	Output:
+–	Tag/category suggestions: Based on the analysis of the page content, the AI model provides suggested tags or categories that are relevant to the link's topic.
+•	Roles:
+–	Registered User (Premium): This feature is intended to be available only to users with a premium subscription or equivalent access level.
+•	Validations:
+–	Optional NLP processing: The implementation may involve Natural Language Processing (NLP) techniques to extract keywords and themes from the page content. Validation would ensure the process handles various content types and sizes gracefully.
+Sub-Module 2: Share Link
+•	Input:
+–	Link ID: The unique identifier of the link that the user wishes to share.
+–	User Email: The email address of the registered user with whom the link should be shared.
+•	Output:
+–	Shared link to another user: The system creates a record (e.g., in a 'SharedLink' collection) indicating that the link has been shared. The recipient user may receive a notification or see the link appear in a dedicated "Shared with me" section.
+•	Roles:
+–	Registered User: Authenticated users can share links from their collection.
+•	Validations:
+–	Email must belong to a registered user: Ensures that the link is being shared with an existing user of the platform, preventing shares to arbitrary email addresses outside the system.
+________________________________________
+MongoDB Schema Design (Node.js + Mongoose)
+Below are the MongoDB collections (equivalent to tables in relational DB). Each collection is represented as a Mongoose model with fields, types, validations, and references.
+________________________________________
+User Collection
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true, maxLength: 50 },
+  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+  password: { type: String, required: true },
+  profileImage: { type: String }, // Base64 or URL
+  emailNotifications: { type: Boolean, default: true },
+  pushNotifications: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+Link Collection
+const LinkSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  title: { type: String, maxLength: 150 },
+  notes: { type: String },
+  deadline: { type: Date },
+  priority: { type: String, enum: ['Low', 'Medium', 'High'] },
+  status: { type: String, enum: ['Pending', 'Completed', 'Archived'], default: 'Pending' },
+  tags: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tag' }],
+  categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+________________________________________
+Tag Collection
+const TagSchema = new mongoose.Schema({
+  name: { type: String, required: true, maxLength: 30 },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+Category Collection
+const CategorySchema = new mongoose.Schema({
+  name: { type: String, required: true, maxLength: 50 },
+  icon: { type: String }, // Optional icon URL or base64
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+Reminder Collection
+const ReminderSchema = new mongoose.Schema({
+  dateTime: { type: Date, required: true },
+  link: { type: mongoose.Schema.Types.ObjectId, ref: 'Link', required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  triggered: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+Notification Collection
+const NotificationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  linkId: { type: mongoose.Schema.Types.ObjectId, ref: 'Link' },
+  message: { type: String, maxLength: 200 },
+  type: { type: String, enum: ['Push', 'Email', 'Reminder'] },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+FileUpload Collection
+const FileUploadSchema = new mongoose.Schema({
+  linkId: { type: mongoose.Schema.Types.ObjectId, ref: 'Link', required: true },
+  filePath: { type: String, required: true }, // Path or URL to file
+  fileType: { type: String, enum: ['resume', 'screenshot', 'cover-letter'] },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+FollowUp Collection
+const FollowUpSchema = new mongoose.Schema({
+  linkId: { type: mongoose.Schema.Types.ObjectId, ref: 'Link', required: true },
+  date: { type: Date, required: true },
+  message: { type: String },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+PasswordResetToken Collection
+const PasswordResetTokenSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  token: { type: String, required: true },
+  expiresAt: { type: Date, required: true },
+  used: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+SharedLink Collection
+const SharedLinkSchema = new mongoose.Schema({
+  linkId: { type: mongoose.Schema.Types.ObjectId, ref: 'Link', required: true },
+  sharedByEmail: { type: String, required: true },
+  sharedWithUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  accepted: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+________________________________________
+ImportedData Collection
+const ImportedDataSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  fileName: { type: String, required: true },
+  importedAt: { type: Date, default: Date.now }
+});
+________________________________________
+Metadata Cache Collection
+const MetadataCacheSchema = new mongoose.Schema({
+  url: { type: String, required: true, unique: true },
+  title: { type: String },
+  description: { type: String },
+  imageUrl: { type: String },
+  fetchedAt: { type: Date, default: Date.now }
+});
+________________________________________
+AIAnalysis Collection
+const AIAnalysisSchema = new mongoose.Schema({
+  url: { type: String, required: true },
+  suggestedTags: [{ type: String }],
+  suggestedCategories: [{ type: String }],
+  analyzedAt: { type: Date, default: Date.now }
+});
+________________________________________
+DashboardSummary Collection
+const DashboardSummarySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  totalLinks: { type: Number, default: 0 },
+  completedLinks: { type: Number, default: 0 },
+  pendingLinks: { type: Number, default: 0 },
+  upcomingDeadlines: { type: Number, default: 0 },
+  lastUpdated: { type: Date, default: Date.now }
+});
+________________________________________
+WeeklyProgress Collection
+const WeeklyProgressSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  weekStart: { type: Date, required: true },
+  addedLinks: { type: Number, default: 0 },
+  completedLinks: { type: Number, default: 0 },
+  remindersSet: { type: Number, default: 0 },
+  updatedOn: { type: Date, default: Date.now }
+});
+________________________________________
+Other Collections (Total > 30)
+In addition to the core collections detailed above, the Link Savor project design anticipates the need for numerous other collections to support various features, analytics, administrative functions, and potential future expansions, bringing the total number of collections to over 30. These additional collections handle functionalities ranging from user preferences and session management to activity logging, premium feature support, and historical data tracking.
+•	UserPreferences
+•	SessionTokens
+•	ActivityLogs
+•	PaymentDetails (for premium features)
+•	SubscriptionPlans
+•	SharedLinkHistory
+•	LinkDuplicates
+•	LinkVersions (history tracking)
+•	DeviceTokens (for push notifications)
+•	EmailTemplates
+•	SystemSettings
+•	Feedback
+•	BugReports
+•	FeatureRequests
+•	AnalyticsEvents
+•	SearchHistory
+•	RecentlyViewedLinks
+•	DeletedLinksArchive
+•	ImportHistory
+•	ExportHistory
+•	AIProcessingQueue
+•	NotificationPreferences
+•	AppVersion
+•	UserDevices
+•	BlockedUsers
+•	ReferralCodes
+•	Invitations
+•	TeamMemberships
+•	Team
+•	LinkComments
+________________________________________
+Other Collections Summary
+Complementing the primary MongoDB schemas, these additional 19 collections enhance the Link Savor system by supporting extended functionality, scalability, and comprehensive feature coverage throughout the application.
+1.	UserPreferences
+2.	SessionTokens
+3.	ActivityLogs
+4.	PaymentDetails (for premium features)
+5.	SubscriptionPlans
+6.	SharedLinkHistory
+7.	LinkDuplicates
+8.	LinkVersions (history tracking)
+9.	DeviceTokens (for push notifications)
+10.	EmailTemplates
+11.	SystemSettings
+12.	Feedback
+13.	BugReports
+14.	FeatureRequests
+15.	AnalyticsEvents
+16.	SearchHistory
+17.	RecentlyViewedLinks
+18.	DeletedLinksArchive
+19.	ImportHistory
+Conclusion
+This document provides a comprehensive overview of the Link Savor project’s module requirements and MongoDB schema design. It details each module and sub-module with clear input/output specifications, defined user roles, and strict validation rules to ensure data integrity. The MongoDB schema, implemented via Node.js and Mongoose, emphasizes scalability, performance, and maintainability, leveraging NoSQL flexibility to support evolving project needs. This structured design supports robust backend implementation and enables efficient management of entities, relationships, and future feature expansions within a professional development environment.
+________________________________________
+Submission Footer
+Submitted By: [Your Full Name]
+Registration Number: [Your Registration Number]
+Section: SP-23
+Date: April 26, 2025
